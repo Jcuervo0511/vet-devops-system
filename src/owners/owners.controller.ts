@@ -19,7 +19,7 @@ export class OwnersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ownersService.findOne(+id);
+    return this.ownersService.findOne(id);
   }
 
   @Put(':id')

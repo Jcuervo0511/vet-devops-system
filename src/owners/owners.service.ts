@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOwnerDto } from './dto/create-owner.dto';
 import { UpdateOwnerPutDto } from './dto/update-owner-put.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,12 +21,14 @@ export class OwnersService {
     return await this.ownersRepo.save(owner);
   }
 
-  findAll() {
-    return `This action returns all owners`;
+  async findAll() {
+    return await this.ownersRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} owner`;
+  async findOne(id: string) {
+    const owner = await this.ownersRepo.findOne({where: {id}});
+    if (!owner) throw new NotFoundException('Owner not found');
+    return owner;
   }
 
   update(id: number, updateOwnerDto: UpdateOwnerPutDto) {
