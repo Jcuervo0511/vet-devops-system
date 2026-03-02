@@ -28,10 +28,4 @@ import { OwnersModule } from './owners/owners.module';
   providers: [AppService],
 })
 export class AppModule {
-  constructor() {
-    console.log(process.env.DB_PASSWORD);
-    console.log(process.env.DB_NAME);
-    console.log(process.env.PORT);
-
-  }
 }
