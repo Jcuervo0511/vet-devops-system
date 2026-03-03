@@ -72,7 +72,9 @@ export class AppointmentsService {
 
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} appointment`;
+  async remove(id: string) {
+    const appointment = await this.findOne(id);
+    await this.appointmentsRepo.remove(appointment);
+    return { deleted: true };
   }
 }
