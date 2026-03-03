@@ -5,7 +5,7 @@ import { UpdateOwnerPutDto } from './dto/update-owner-put.dto';
 
 @Controller('owners')
 export class OwnersController {
-  constructor(private readonly ownersService: OwnersService) {}
+  constructor(private readonly ownersService: OwnersService) { }
 
   @Post()
   create(@Body() createOwnerDto: CreateOwnerDto) {
@@ -23,9 +23,15 @@ export class OwnersController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateOwnerDto: UpdateOwnerPutDto) {
-    return this.ownersService.update(+id, updateOwnerDto);
+  put(@Param('id') id: string, @Body() updateOwnerDto: UpdateOwnerPutDto) {
+    return this.ownersService.updatePut(id, updateOwnerDto);
   }
+
+  @Patch(':id')
+  patch(@Param('id') id: string, @Body() updateOwnerDto: UpdateOwnerPutDto) {
+    return this.ownersService.updatePatch(+id, updateOwnerDto);
+  }
+
 
   @Delete(':id')
   remove(@Param('id') id: string) {
