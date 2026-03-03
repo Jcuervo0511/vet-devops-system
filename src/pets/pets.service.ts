@@ -68,7 +68,9 @@ export class PetsService {
     return this.petsRepo.save(pet);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} pet`;
+  async remove(id: string) {
+    const pet = await this.findOne(id);
+    await this.petsRepo.remove(pet);
+    return {deleted: true}
   }
 }
