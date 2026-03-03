@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { UpdateAppointmentPutDto } from './dto/update-appointment-put.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
@@ -30,19 +30,21 @@ export class AppointmentsService {
     return this.appointmentsRepo.save(appointment);
   }
 
-  findAll() {
-    return `This action returns all appointments`;
+  async findAll() {
+    return await this.appointmentsRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} appointment`;
+  async findOne(id: string) {
+    const appointment = await this.appointmentsRepo.findOne({where: {id}});
+    if (!appointment) throw new NotFoundException('Appointment not found');
+    return appointment;
   }
 
-  update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
+  updatePut(id: string, updateAppointmentDto: UpdateAppointmentPutDto) {
     return `This action updates a #${id} appointment`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} appointment`;
   }
 }
