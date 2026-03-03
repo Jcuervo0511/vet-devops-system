@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePetDto } from './dto/create-pet.dto';
-import { UpdatePetDto } from './dto/update-pet.dto';
+import { UpdatePetPutDto } from './dto/update-pet-put.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
 import { Owner } from 'src/owners/entities/owner.entity';
+import { UpdatePetPatchDto } from './dto/update-pet-patch.dto';
 
 @Injectable()
 export class PetsService {
@@ -40,8 +41,31 @@ export class PetsService {
     return pet;
   }
 
-  update(id: number, updatePetDto: UpdatePetDto) {
-    return `This action updates a #${id} pet`;
+  async updatePut(id: string, dto: UpdatePetPutDto) {
+    const pet = await this.findOne(id);
+    if (dto.ownerId !== pet.ownerId) {
+      const owner = await this.ownersRepo.findOne({ where: { id: dto.ownerId } });
+      if (!owner) throw new NotFoundException('Owner not found');
+    }
+
+    pet.name = dto.name;
+    pet.species = dto.species;
+    pet.breed = dto.breed;
+    pet.birthDate = dto.birthDate;
+    pet.ownerId = dto.ownerId;
+
+    return this.petsRepo.save(pet);
+  }
+
+  async updatePatch(id: string, dto: UpdatePetPatchDto) {
+    const pet = await this.findOne(id);
+    if (dto.ownerId && dto.ownerId !== pet.ownerId) {
+      const owner = await this.ownersRepo.findOne({ where: { id: dto.ownerId } });
+      if (!owner) throw new NotFoundException('Owner not found');
+    }
+
+    Object.assign(pet, dto);
+    return this.petsRepo.save(pet);
   }
 
   remove(id: number) {
