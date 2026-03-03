@@ -47,11 +47,19 @@ export class OwnersService {
     owner.email = updateOwnerDto.email;
     owner.phone_number = updateOwnerDto.phone_number;
 
-    return this.ownersRepo.save(owner);
+    return await this.ownersRepo.save(owner);
   }
 
-  updatePatch(id: number, updateOwnerDto: UpdateOwnerPatchDto) {
-    return `This action updates a #${id} owner`;
+  async updatePatch(id: string, updateOwnerDto: UpdateOwnerPatchDto) {
+    const owner = await this.findOne(id);
+    if (updateOwnerDto.email && updateOwnerDto.email !== owner.email) {
+      const existing = await this.ownersRepo.findOne({where: {email: updateOwnerDto.email}});
+      if (existing) throw new ConflictException('Email already exists');
+
+    }
+
+    Object.assign(owner, updateOwnerDto);
+    return await this.ownersRepo.save(owner);
   }
 
   remove(id: number) {

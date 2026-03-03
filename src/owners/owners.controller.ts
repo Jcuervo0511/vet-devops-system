@@ -29,7 +29,7 @@ export class OwnersController {
 
   @Patch(':id')
   patch(@Param('id') id: string, @Body() updateOwnerDto: UpdateOwnerPutDto) {
-    return this.ownersService.updatePatch(+id, updateOwnerDto);
+    return this.ownersService.updatePatch(id, updateOwnerDto);
   }
 
 
