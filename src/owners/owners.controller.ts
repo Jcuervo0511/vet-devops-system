@@ -35,6 +35,6 @@ export class OwnersController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ownersService.remove(+id);
+    return this.ownersService.remove(id);
   }
 }
