@@ -43,7 +43,7 @@ export class AppointmentsService {
 
   async updatePut(id: string, updateAppointmentDto: UpdateAppointmentPutDto) {
     const appointment = await this.findOne(id);
-    if (updateAppointmentDto.petId !== appointment.id) {
+    if (updateAppointmentDto.petId !== appointment.petId) {
       const pet = await this.petsRepo.findOne({ where: { id: updateAppointmentDto.petId } });
       if (!pet) throw new NotFoundException('Pet not found');
     }
