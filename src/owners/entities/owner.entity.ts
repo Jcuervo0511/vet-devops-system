@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Pet } from "src/pets/entities/pet.entity";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('owners')
 export class Owner {
@@ -16,5 +17,8 @@ export class Owner {
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
+
+    @OneToMany(() => Pet, (pet) => pet.owner)
+    pets: Pet[];
 
 }
