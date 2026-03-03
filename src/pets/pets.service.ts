@@ -30,12 +30,14 @@ export class PetsService {
     return this.petsRepo.save(pet);
   }
 
-  findAll() {
-    return `This action returns all pets`;
+  async findAll() {
+    return await this.petsRepo.find();;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pet`;
+  async findOne(id: string) {
+    const pet = await this.petsRepo.findOne({ where: { id } });
+    if (!pet) throw new NotFoundException('Pet not found');
+    return pet;
   }
 
   update(id: number, updatePetDto: UpdatePetDto) {
