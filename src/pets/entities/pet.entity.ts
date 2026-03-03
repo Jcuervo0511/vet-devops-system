@@ -1,5 +1,6 @@
+import { Appointment } from "src/appointments/entities/appointment.entity";
 import { Owner } from "src/owners/entities/owner.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('pets')
 export class Pet {
@@ -25,6 +26,9 @@ export class Pet {
     @ManyToOne(() => Owner, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'owner_id' })
     owner: Owner;
+
+    @OneToMany(() => Appointment, (appointment) => appointment.pet)
+    appointments: Appointment[];
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
