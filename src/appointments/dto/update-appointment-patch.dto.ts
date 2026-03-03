@@ -4,17 +4,21 @@ import { IsEnum, IsOptional, IsString, IsUUID, MinLength, IsDateString } from 'c
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 
-export class UpdateAppointmentPutDto extends PartialType(CreateAppointmentDto) {
+export class UpdateAppointmentPatchDto extends PartialType(CreateAppointmentDto) {
+    @IsOptional()
     @IsUUID()
-    petId: string;
+    petId?: string;
 
+    @IsOptional()
     @IsDateString()
-    appointmentDate: string;
+    appointmentDate?: string;
 
+    @IsOptional()
     @IsString()
     @MinLength(3)
-    reason: string;
+    reason?: string;
 
+    @IsOptional()
     @IsEnum(AppointmentStatus)
-    status: AppointmentStatus;
+    status?: AppointmentStatus;
 }

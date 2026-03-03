@@ -6,6 +6,7 @@ import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
 import { Pet } from 'src/pets/entities/pet.entity';
 import { AppointmentStatus } from './enums/appointment-status.enum';
+import { UpdateAppointmentPatchDto } from './dto/update-appointment-patch.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -35,13 +36,40 @@ export class AppointmentsService {
   }
 
   async findOne(id: string) {
-    const appointment = await this.appointmentsRepo.findOne({where: {id}});
+    const appointment = await this.appointmentsRepo.findOne({ where: { id } });
     if (!appointment) throw new NotFoundException('Appointment not found');
     return appointment;
   }
 
-  updatePut(id: string, updateAppointmentDto: UpdateAppointmentPutDto) {
-    return `This action updates a #${id} appointment`;
+  async updatePut(id: string, updateAppointmentDto: UpdateAppointmentPutDto) {
+    const appointment = await this.findOne(id);
+    if (updateAppointmentDto.petId !== appointment.id) {
+      const pet = await this.petsRepo.findOne({ where: { id: updateAppointmentDto.petId } });
+      if (!pet) throw new NotFoundException('Pet not found');
+    }
+    appointment.petId = updateAppointmentDto.petId;
+    appointment.appointmentDate = new Date(updateAppointmentDto.appointmentDate);
+    appointment.reason = updateAppointmentDto.reason;
+    appointment.status = updateAppointmentDto.status;
+
+    return this.appointmentsRepo.save(appointment);
+  }
+
+  async updatePatch(id: string, updateAppoinmentDto: UpdateAppointmentPatchDto) {
+    const appointment = await this.findOne(id);
+    if (updateAppoinmentDto.petId && updateAppoinmentDto.petId !== appointment.petId) {
+      const pet = await this.petsRepo.findOne({ where: { id: updateAppoinmentDto.petId } });
+      if (!pet) throw new NotFoundException('Pet not found');
+    }
+
+    const partial_appointment: Partial<Appointment> = {
+      ...updateAppoinmentDto,
+      appointmentDate: updateAppoinmentDto.appointmentDate ? new Date(updateAppoinmentDto.appointmentDate) : appointment.appointmentDate,
+    };
+
+    Object.assign(appointment, partial_appointment);
+    return this.appointmentsRepo.save(appointment);
+
   }
 
   remove(id: string) {

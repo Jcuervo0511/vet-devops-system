@@ -2,17 +2,18 @@ import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, MinLength } from 'c
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 export class CreateAppointmentDto {
-  @IsUUID()
-  petId: string;
 
-  @IsDateString()
-  appointmentDate: string;
+    @IsUUID()
+    petId: string;
 
-  @IsString()
-  @MinLength(3)
-  reason: string;
+    @IsDateString()
+    appointmentDate: string;
 
-  @IsOptional()
-  @IsEnum(AppointmentStatus)
-  status?: AppointmentStatus;
+    @IsString()
+    @MinLength(3)
+    reason: string;
+
+    @IsOptional()
+    @IsEnum(AppointmentStatus)
+    status?: AppointmentStatus;
 }
