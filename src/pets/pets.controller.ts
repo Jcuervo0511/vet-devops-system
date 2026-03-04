@@ -3,7 +3,9 @@ import { PetsService } from './pets.service';
 import { CreatePetDto } from './dto/create-pet.dto';
 import { UpdatePetPutDto } from './dto/update-pet-put.dto';
 import { UpdatePetPatchDto } from './dto/update-pet-patch.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('pets')
 @Controller('pets')
 export class PetsController {
   constructor(private readonly petsService: PetsService) {}
