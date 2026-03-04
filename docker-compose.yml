@@ -1,21 +1,24 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: vet_postgres
-    restart: unless-stopped
+  db:
+    image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vet_db
     ports:
-      - "${DB_PORT}:5432"
+      - "5433:5432"
     volumes:
-      - vet_pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    depends_on:
+      - db
+    environment:
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "3000:3000"
 
 volumes:
-  vet_pg_data:
+  pgdata:
