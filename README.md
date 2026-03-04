@@ -1,98 +1,204 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <a href="http://nestjs.com/" target="blank">
+    <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />
+  </a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<h1 align="center">Vet DevOps System</h1>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+RESTful API for veterinary management built with <b>NestJS</b>, <b>PostgreSQL</b>, and modern <b>DevOps practices</b> including Docker, CI/CD pipelines, automated testing, staging and production environments.
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# Project Overview
 
-## Project setup
+This project implements a **Veterinary Management API** that allows managing:
+
+- Owners
+- Pets
+- Appointments
+
+The system demonstrates **DevOps practices**, including:
+
+- Containerization with **Docker**
+- **CI/CD pipelines** with GitHub Actions
+- **Staging and Production environments**
+- Automated testing and **coverage gates**
+- Automated deployment with **Render**
+- Cloud database using **Supabase**
+
+---
+
+# Architecture
+
+Main technologies used:
+
+| Technology | Purpose |
+|---|---|
+| NestJS | Backend framework |
+| PostgreSQL | Relational database |
+| TypeORM | ORM |
+| Docker | Containerization |
+| GitHub Actions | CI/CD |
+| Render | Deployment |
+| Supabase | Managed PostgreSQL |
+| Swagger | API documentation |
+| Jest | Testing framework |
+
+---
+
+# Entities
+
+The API manages three main resources.
+
+## Owners
+
+Represents a pet owner.
+
+Example fields:
+id
+name
+email
+iphone
+
+---
+
+## Pets
+
+Represents a pet belonging to an owner.
+
+id
+name
+species
+breed
+birthDate
+ownerId
+
+Relationship:
+Owner -> many Pets
+
+---
+
+## Appointments
+
+Represents veterinary appointments.
+
+id
+petId
+appointmentDate
+reason
+status
+
+Relationship:
+Pet -> many Appointments
+
+---
+
+# API Documentation
+
+Swagger documentation is available at:
+/api#
+
+Example staging URL:
+https://vet-devops-system.onrender.com/api#
+
+Swagger allows:
+
+- Testing endpoints
+- Viewing request schemas
+- Viewing responses
+- Understanding API structure
+
+---
+
+# Running the Project Locally
+
+## Install dependencies
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
-
+## Run in development mode
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run start:dev
 ```
-
-## Run tests
-
+## Build the project
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:prod
 ```
 
-## Deployment
+# Running with docker
+The project includes Docker support for running the entire stack
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+## Build and start containers
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+This will start:
+- API Container
+- PostgreSQL container
 
-## Resources
+Containers will run on:
+API -> localhost:3000
+PostgreSQL -> localhost:5433
 
-Check out a few resources that may come in handy when working with NestJS:
+# Testing
+The project includes unit tests for service and controllers
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Run unit test:
+```bash
+npm run test
+```
 
-## Support
+Run tests with coverage:
+```bash
+npm run test -- --coverage
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Coverage reports are generated automatically in the /coverage directory.
 
-## Stay in touch
+# CI/CD Pipelines
+The project uses Github Actions to automate testing and deployment.
+Two pipelines are configured.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Staging pipeline
+Triggered when pushing to develop branch
+Pipeline steps:
 
-## License
+Install dependencies
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Run tests
+
+Generate coverage
+
+Validate coverage ≥ 60%
+
+Build the project
+
+Deploy automatically to Render Staging
+
+This environment is used for testing new changes before production.
+
+## Production pipeline
+Triggered when pushing to main branch
+Pipeline steps:
+
+Install dependencies
+
+Run tests
+
+Generate coverage
+
+Validate coverage ≥ 85%
+
+Build the project
+
+Deploy automatically to Render Production
+
+Production requires stricter quality control.
+
+If tests fail or coverage is below the threshold, deployment is blocked.
