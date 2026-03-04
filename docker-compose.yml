@@ -15,8 +15,8 @@ services:
     depends_on:
       - db
     environment:
-      PORT: 3000
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/vet_db
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - "3000:3000"
 
