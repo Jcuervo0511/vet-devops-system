@@ -4,7 +4,7 @@ import { UpdatePetPutDto } from './dto/update-pet-put.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
-import { Owner } from 'src/owners/entities/owner.entity';
+import { Owner } from '../owners/entities/owner.entity';
 import { UpdatePetPatchDto } from './dto/update-pet-patch.dto';
 
 @Injectable()

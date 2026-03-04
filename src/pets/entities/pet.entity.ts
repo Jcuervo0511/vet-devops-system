@@ -1,5 +1,5 @@
-import { Appointment } from "src/appointments/entities/appointment.entity";
-import { Owner } from "src/owners/entities/owner.entity";
+import { Appointment } from "../../appointments/entities/appointment.entity";
+import { Owner } from "../../owners/entities/owner.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('pets')

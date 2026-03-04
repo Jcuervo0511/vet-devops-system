@@ -4,7 +4,7 @@ import { UpdateAppointmentPutDto } from './dto/update-appointment-put.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
-import { Pet } from 'src/pets/entities/pet.entity';
+import { Pet } from '../pets/entities/pet.entity';
 import { AppointmentStatus } from './enums/appointment-status.enum';
 import { UpdateAppointmentPatchDto } from './dto/update-appointment-patch.dto';
 

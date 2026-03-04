@@ -4,8 +4,9 @@ import { NotFoundException } from '@nestjs/common';
 
 import { AppointmentsService } from './appointments.service';
 import { Appointment } from './entities/appointment.entity';
-import { Pet } from 'src/pets/entities/pet.entity';
+
 import { AppointmentStatus } from './enums/appointment-status.enum';
+import { Pet } from '../pets/entities/pet.entity';
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;

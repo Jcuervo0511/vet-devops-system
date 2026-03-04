@@ -4,7 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 
 import { PetsService } from './pets.service';
 import { Pet } from './entities/pet.entity';
-import { Owner } from 'src/owners/entities/owner.entity';
+import { Owner } from '../owners/entities/owner.entity';
 
 describe('PetsService', () => {
   let service: PetsService;
