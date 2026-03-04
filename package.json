@@ -61,6 +61,12 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "json-summary"
+    ],
     "moduleFileExtensions": [
       "js",
       "json",
@@ -81,7 +87,7 @@
       "/coverage/",
       "/test/"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/src/$1"
