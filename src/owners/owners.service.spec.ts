@@ -53,7 +53,7 @@ describe('OwnersService', () => {
 
       expect(repoMock.create).toHaveBeenCalled();
       expect(repoMock.save).toHaveBeenCalled();
-      expect(result.id).toBe('uuid');
+      expect(result.id).toBe('uuid-fake');
     });
   });
 
