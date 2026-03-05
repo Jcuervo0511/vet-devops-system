@@ -1,10 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateAppointmentDto } from './create-appointment.dto';
 import { IsEnum, IsOptional, IsString, IsUUID, MinLength, IsDateString } from 'class-validator';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 
-export class UpdateAppointmentPutDto extends PartialType(CreateAppointmentDto) {
+export class UpdateAppointmentPutDto{
     @IsUUID()
     petId: string;
 
