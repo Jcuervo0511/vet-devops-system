@@ -33,7 +33,7 @@ jobs:
           const p='./coverage/coverage-summary.json';
           const c=JSON.parse(fs.readFileSync(p,'utf8')).total.lines.pct;
           console.log('Lines coverage:', c);
-          if (c < 60) { console.error('Coverage gate failed: ' + c + ' < 60'); process.exit(1); }
+          if (c < 90) { console.error('Coverage gate failed: ' + c + ' < 90'); process.exit(1); }
           "
 
       - name: Build
