@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [develop]
 
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  IMAGE_TAG: ${{ github.sha }}
+
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
@@ -39,8 +44,43 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to Render (staging)
+      - name: Configure AWS credentials
         if: github.event_name == 'push'
-        run: curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_STAGING"
-        env:
-          RENDER_DEPLOY_HOOK_STAGING: ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: github.event_name == 'push'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push Docker image
+        if: github.event_name == 'push'
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:staging-$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:staging-$IMAGE_TAG
+
+      - name: Deploy to EC2 (staging)
+        if: github.event_name == 'push'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+            docker pull $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:staging-${{ github.sha }}
+            docker stop vet-staging || true
+            docker rm vet-staging || true
+            docker run -d \
+              --name vet-staging \
+              --restart always \
+              -p 8080:3000 \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e NODE_ENV=staging \
+              $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:staging-${{ github.sha }}

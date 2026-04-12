@@ -1,10 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateOwnerDto } from './create-owner.dto';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 
-export class UpdateOwnerPutDto extends PartialType(CreateOwnerDto) {
+export class UpdateOwnerPutDto {
 
     @ApiProperty({example: 'Juan Cuervo'})
     @IsString()
