@@ -67,4 +67,32 @@ export class OwnersService {
     await this.ownersRepo.remove(owner)
     return { deleted: true };
   }
+
+  async chain(ownerId: string) {
+    const API_URL = 'https://pokeapi.co/api/v2/pokemon/pikachu';
+    const LAMBDA_URL = 'https://3yga27522patxtryr5e2k6xfta0rtglv.lambda-url.us-east-2.on.aws';
+
+    const response = await fetch(API_URL);
+    const data = await response.json();
+
+    const owner = await this.findOne(ownerId);
+
+    const result = {
+      Lasso: {
+        name: data.name,
+        id: data.id,
+        types: data.types.map((t: any) => t.type.name),
+      },
+      Cuervo: owner,
+    };
+
+    await fetch(LAMBDA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify(result),
+    });
+
+    return result;
+
+  }
 }
