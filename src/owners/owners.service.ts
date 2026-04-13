@@ -69,7 +69,7 @@ export class OwnersService {
   }
 
   async chain(ownerId: string) {
-    const API_URL = 'https://pokeapi.co/api/v2/pokemon/pikachu';
+    const API_URL = 'https://handle-request-315329759921.us-east1.run.app/';
     const LAMBDA_URL = 'https://3yga27522patxtryr5e2k6xfta0rtglv.lambda-url.us-east-2.on.aws';
 
     const response = await fetch(API_URL);
@@ -78,11 +78,7 @@ export class OwnersService {
     const owner = await this.findOne(ownerId);
 
     const result = {
-      Lasso: {
-        name: data.name,
-        id: data.id,
-        types: data.types.map((t: any) => t.type.name),
-      },
+      Lasso: data.data,
       Cuervo: owner,
     };
 
