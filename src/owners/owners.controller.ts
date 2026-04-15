@@ -66,9 +66,9 @@ export class OwnersController {
     return this.ownersService.remove(id);
   }
 
-  @Get('api/v2/:id/chain')
-  chain(@Param('id') id: string) {
-    return this.ownersService.chain(id);
+  @Post('api/v2/chain')
+  chain(@Body() body: {ownerId: string}) {
+    return this.ownersService.chain(body.ownerId);
   }
 
 
