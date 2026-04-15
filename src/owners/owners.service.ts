@@ -99,6 +99,8 @@ export class OwnersService {
         result,
       }),
     });
+
+    console.log(payload);
     
     return result;
 
