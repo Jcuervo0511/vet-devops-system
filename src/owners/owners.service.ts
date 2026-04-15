@@ -69,8 +69,8 @@ export class OwnersService {
   }
 
   async chain(payload: { lasso: any; cuervo: any }) {
-    const LASSO_URL = 'https://mi-api-212551049310.us-central1.run.app/api/v2/menus';
-    const LAMBDA_URL = 'https://3yga27522patxtryr5e2k6xfta0rtglv.lambda-url.us-east-2.on.aws';
+    const LASSO_URL = 'https://mi-api-212551049310.us-central1.run.app/api/v2/restaurantes';
+    const GCP_URL = 'https://handle-request-315329759921.us-east1.run.app/';
 
     const lassoResponse = await fetch(LASSO_URL, {
       method: 'POST',
@@ -80,12 +80,25 @@ export class OwnersService {
 
     const lassoData = await lassoResponse.json();
 
-    const savedOwner = await this.create(payload.cuervo);
+    let cuervoData;
+    try {
+      cuervoData = await this.create(payload.cuervo);
+    } catch (error: any) {
+      cuervoData = { error: error.message };
+    }
 
     const result = {
       lasso: lassoData,
-      cuervo: savedOwner
+      cuervo: cuervoData
     };
+
+    await fetch(GCP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        result,
+      }),
+    });
     
     return result;
 
