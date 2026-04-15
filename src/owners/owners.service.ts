@@ -101,7 +101,7 @@ export class OwnersService {
     });
 
     
-    return payload;
+    return result;
 
   }
 }
