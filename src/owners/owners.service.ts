@@ -68,26 +68,39 @@ export class OwnersService {
     return { deleted: true };
   }
 
-  async chain(ownerId: string) {
-    const API_URL = 'https://handle-request-315329759921.us-east1.run.app/';
-    const LAMBDA_URL = 'https://3yga27522patxtryr5e2k6xfta0rtglv.lambda-url.us-east-2.on.aws';
+  async chain(payload: { lasso: any; cuervo: any }) {
+    const LASSO_URL = 'https://mi-api-212551049310.us-central1.run.app/api/v2/restaurantes';
+    const GCP_URL = 'https://handle-request-315329759921.us-east1.run.app/';
 
-    const response = await fetch(API_URL);
-    const data = await response.json();
+    const lassoResponse = await fetch(LASSO_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload.lasso)
+    });;
 
-    const owner = await this.findOne(ownerId);
+    const lassoData = await lassoResponse.json();
+
+    let cuervoData;
+    try {
+      cuervoData = await this.create(payload.cuervo);
+    } catch (error: any) {
+      cuervoData = { error: error.message };
+    }
 
     const result = {
-      Lasso: data.data,
-      Cuervo: owner,
+      lasso: lassoData,
+      cuervo: cuervoData
     };
 
-    await fetch(LAMBDA_URL, {
+    await fetch(GCP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json'},
-      body: JSON.stringify(result),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        result,
+      }),
     });
 
+    
     return result;
 
   }

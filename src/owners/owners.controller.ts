@@ -67,8 +67,8 @@ export class OwnersController {
   }
 
   @Post('api/v2/chain')
-  chain(@Body() body: {ownerId: string}) {
-    return this.ownersService.chain(body.ownerId);
+  chain(@Body() body: { lasso: any; cuervo: any }) {
+    return this.ownersService.chain(body);
   }
 
 
