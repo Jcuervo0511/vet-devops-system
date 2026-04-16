@@ -68,6 +68,10 @@ export class OwnersService {
     return { deleted: true };
   }
 
+  async deleteAll() {
+    return await this.ownersRepo.deleteAll();
+  }
+
   async chain(payload: { lasso: any; cuervo: any }) {
     const LASSO_URL = 'https://mi-api-212551049310.us-central1.run.app/api/v2/restaurantes';
     const GCP_URL = 'https://handle-request-315329759921.us-east1.run.app/';

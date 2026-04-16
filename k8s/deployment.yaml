@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vet-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vet-app
+  template:
+    metadata:
+      labels:
+        app: vet-app
+    spec:
+      containers:
+        - name: vet-app
+          image: 578673726717.dkr.ecr.us-east-2.amazonaws.com/devops:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vet-app-secret
+                  key: DATABASE_URL
+            - name: NODE_ENV
+              value: "production"

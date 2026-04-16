@@ -202,3 +202,7 @@ Deploy automatically to Render Production
 Production requires stricter quality control.
 
 If tests fail or coverage is below the threshold, deployment is blocked.
+
+
+### Architecture Diagram
+![Arquitectura multicloud AWS y GCP](./assets/architecture_diagram.jpeg)
