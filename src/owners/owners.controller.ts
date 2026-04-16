@@ -56,6 +56,11 @@ export class OwnersController {
     return this.ownersService.updatePatch(id, updateOwnerDto);
   }
 
+  @Delete()
+  delete() {
+    return this.ownersService.deleteAll()
+  }
+
 
   @ApiOperation({summary: 'Delete an owner by id'})
   @ApiParam({ name: 'id', example: 'This is the owner id' })
@@ -70,6 +75,7 @@ export class OwnersController {
   chain(@Body() body: { lasso: any; cuervo: any }) {
     return this.ownersService.chain(body);
   }
+ 
 
 
 
