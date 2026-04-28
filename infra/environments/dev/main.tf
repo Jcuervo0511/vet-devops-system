@@ -42,7 +42,7 @@ module "ec2" {
     subnet_id = module.networking.public_subnets_ids[0]
     security_group_id = module.networking.ec2_sg_id
     key_name = var.key_name
-    instance_type = "t2.micro"
+    instance_type = "t3.micro"
 }
 
 output "ec2_public_ip" {
