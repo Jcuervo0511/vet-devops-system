@@ -1,14 +1,27 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: vet-app-service
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+  name: vet-stable-service
 spec:
   selector:
     app: vet-app
+    version: stable
   ports:
     - protocol: TCP
       port: 80
       targetPort: 3000
-  type: LoadBalancer
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vet-canary-service
+spec:
+  selector:
+    app: vet-app
+    version: canary
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

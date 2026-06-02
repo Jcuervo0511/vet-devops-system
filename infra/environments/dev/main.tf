@@ -3,56 +3,72 @@ terraform {
 
   required_providers {
     aws = {
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
 
 provider "aws" {
-    region = var.aws_region
+  region = var.aws_region
 }
 
 module "networking" {
-    source = "../../modules/networking"
-    project_name = var.project_name
-    aws_region = var.aws_region
+  source       = "../../modules/networking"
+  project_name = var.project_name
+  aws_region   = var.aws_region
 
 }
 
 module "ecr" {
-    source = "../../modules/ecr"
-    project_name = var.project_name
-    repository_name = "devops"
+  source          = "../../modules/ecr"
+  project_name    = var.project_name
+  repository_name = "devops"
 }
 
 module "rds" {
-    source = "../../modules/rds"
-    project_name = var.project_name
-    db_username = var.db_username
-    db_password = var.db_password
-    subnet_ids = module.networking.public_subnets_ids
-    security_group_id = module.networking.rds_sg_id
-    instance_class = "db.t3.micro"
+  source            = "../../modules/rds"
+  project_name      = var.project_name
+  db_username       = var.db_username
+  db_password       = var.db_password
+  subnet_ids        = module.networking.public_subnets_ids
+  security_group_id = module.networking.rds_sg_id
+  instance_class    = "db.t3.micro"
 }
 
 module "ec2" {
-    source = "../../modules/ec2"
-    project_name = var.project_name
-    subnet_id = module.networking.public_subnets_ids[0]
-    security_group_id = module.networking.ec2_sg_id
-    key_name = var.key_name
-    instance_type = "t3.micro"
+  source            = "../../modules/ec2"
+  project_name      = var.project_name
+  subnet_id         = module.networking.public_subnets_ids[0]
+  security_group_id = module.networking.ec2_sg_id
+  key_name          = var.key_name
+  instance_type     = "t3.micro"
 }
 
+module "eks" {
+  source             = "../../modules/eks"
+  project_name       = var.project_name
+  subnet_ids         = module.networking.public_subnets_ids
+  node_instance_type = "t3.small"
+  desired_nodes      = 1
+  min_nodes          = 1
+  max_nodes          = 2
+}
+
+
 output "ec2_public_ip" {
-    value = module.ec2.public_ip
+  value = module.ec2.public_ip
 }
 
 output "rds_endpoint" {
-    value = module.rds.endpoint
+  value = module.rds.endpoint
 }
 
 output "ecr_url" {
-    value = module.ecr.repository_url
+  value = module.ecr.repository_url
 }
+
+output "eks_cluster_name" { value = module.eks.cluster_name }
+output "eks_endpoint" { value = module.eks.cluster_endpoint }
+
+
