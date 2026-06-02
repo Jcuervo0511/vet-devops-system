@@ -206,3 +206,113 @@ If tests fail or coverage is below the threshold, deployment is blocked.
 
 ### Architecture Diagram
 ![Arquitectura multicloud AWS y GCP](./assets/architecture_diagram.jpeg)
+
+---
+
+# Canary Deployment Strategy
+
+## What is Canary?
+A deployment strategy that releases a new version to a small percentage of users before full rollout. If the new version fails, only that percentage is affected.
+
+## Architecture
+
+```
+User
+   ↓
+AWS Network Load Balancer
+   ↓
+Nginx Ingress Controller
+   ↓              ↓
+90% traffic    10% traffic
+   ↓              ↓
+vet-stable-    vet-canary-
+service        service
+   ↓              ↓
+2 pods         1 pod
+stable         canary
+   ↓              ↓
+      RDS PostgreSQL
+```
+
+## Kubernetes Components
+
+| File | Description |
+|---|---|
+| `k8s/deployment-stable.yaml` | 2 replicas with `devops:stable` image |
+| `k8s/deployment-canary.yaml` | 1 replica with `devops:canary` image |
+| `k8s/service.yaml` | `vet-stable-service` and `vet-canary-service` |
+| `k8s/ingress.yaml` | Nginx Ingress — 90% stable / 10% canary |
+
+## Traffic Control
+Nginx Ingress Controller distributes traffic using annotations:
+```yaml
+nginx.ingress.kubernetes.io/canary: "true"
+nginx.ingress.kubernetes.io/canary-weight: "10"
+```
+
+---
+
+## Validation URLs
+
+Base URL:
+```
+http://a461d5a1902a04ef2aacece9f16cd4fd-9d0ea69ab7913be1.elb.us-east-2.amazonaws.com
+```
+
+### Stable HealthCheck
+```
+GET /api/v2/health
+```
+Expected response:
+```json
+{
+  "status": "stable",
+  "version": "2.0.0",
+  "uptime": 1234,
+  "timestamp": "2026-06-02T..."
+}
+```
+
+### Canary HealthCheck
+~10% of requests will respond:
+```json
+{
+  "status": "canary",
+  "version": "2.1.0",
+  "deploymentDate": "2026-06-02",
+  "timestamp": "2026-06-02T..."
+}
+```
+
+### Swagger UI
+```
+GET /api
+```
+
+### Validate traffic distribution with Postman
+Send 10 requests to `/api/v2/health` — approximately 9 will respond `stable` and 1 will respond `canary`.
+
+---
+
+## Monitoring
+
+### View running pods
+```bash
+kubectl get pods --show-labels
+```
+
+### View deployments status
+```bash
+kubectl get deployments
+```
+
+### View ingress configuration
+```bash
+kubectl describe ingress vet-app-ingress
+kubectl describe ingress vet-app-ingress-canary
+```
+
+### View Nginx logs (traffic distribution)
+```bash
+kubectl logs -n ingress-nginx deployment/ingress-nginx-controller | grep "api/v2/health"
+```

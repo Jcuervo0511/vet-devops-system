@@ -1,20 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vet-app
+  name: vet-canary
+  labels:
+    app: vet-app
+    version: canary
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: vet-app
+      version: canary
   template:
     metadata:
       labels:
         app: vet-app
+        version: canary
     spec:
       containers:
         - name: vet-app
-          image: 578673726717.dkr.ecr.us-east-2.amazonaws.com/devops:latest
+          image: 578673726717.dkr.ecr.us-east-2.amazonaws.com/devops:stable
           ports:
             - containerPort: 3000
           env:
