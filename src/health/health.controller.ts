@@ -10,8 +10,8 @@ export class HealthController {
     @Get()
     check() {
         return {
-            status: 'stable',
-            version: '2.0.0',
+            status: 'canary',
+            version: '2.1.0',
             uptime: process.uptime(),
             timestamp: new Date().toISOString(),
         };
