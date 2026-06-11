@@ -84,4 +84,5 @@ jobs:
               -p 80:3000 \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e NODE_ENV=production \
+              -e CHAOS_ENABLED=false \
               $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:latest

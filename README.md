@@ -161,6 +161,15 @@ npm run test -- --coverage
 
 Coverage reports are generated automatically in the /coverage directory.
 
+# Chaos Engineering Experiments
+
+The project includes three controlled scenarios: event-loop latency, a
+transient HTTP 503 error, and retained memory. They are disabled by default and
+protected with the `x-chaos-key` header.
+
+See [docs/chaos-experiments.md](docs/chaos-experiments.md) for the local and
+AWS staging demonstration procedure.
+
 # CI/CD Pipelines
 The project uses Github Actions to automate testing and deployment.
 Two pipelines are configured.

@@ -83,4 +83,9 @@ jobs:
               -p 8080:3000 \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
               -e NODE_ENV=staging \
+              -e CHAOS_ENABLED="${{ secrets.CHAOS_ENABLED }}" \
+              -e CHAOS_PROTECTION_ENABLED="${{ secrets.CHAOS_PROTECTION_ENABLED }}" \
+              -e CHAOS_KEY="${{ secrets.CHAOS_KEY }}" \
+              -e CHAOS_DELAY_MS="${{ vars.CHAOS_DELAY_MS }}" \
+              -e CHAOS_MEMORY_MB="${{ vars.CHAOS_MEMORY_MB }}" \
               $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:staging-${{ github.sha }}

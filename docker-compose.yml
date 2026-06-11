@@ -17,6 +17,11 @@ services:
     environment:
       PORT: ${PORT}
       DATABASE_URL: ${DATABASE_URL}
+      CHAOS_ENABLED: ${CHAOS_ENABLED:-false}
+      CHAOS_PROTECTION_ENABLED: ${CHAOS_PROTECTION_ENABLED:-true}
+      CHAOS_KEY: ${CHAOS_KEY:-}
+      CHAOS_DELAY_MS: ${CHAOS_DELAY_MS:-3000}
+      CHAOS_MEMORY_MB: ${CHAOS_MEMORY_MB:-1}
     ports:
       - "3000:3000"
 

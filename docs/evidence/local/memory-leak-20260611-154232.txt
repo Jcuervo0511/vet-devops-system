@@ -1,0 +1,6 @@
+Scenario: retained memory
+Target: http://localhost:3000
+Requests: 20
+Started: 2026-06-11T15:42:32-05:00
+{"reset":true,"releasedBlocks":0,"protectionEnabled":false,"retainedBlocks":0,"retainedBytes":0,"memory":{"rss":88137728,"heapUsed":26787560,"external":3527353}}
+{"protectionEnabled":false,"retainedBlocks":20,"retainedBytes":20971520,"memory":{"rss":108113920,"heapUsed":27227824,"external":24498913}}

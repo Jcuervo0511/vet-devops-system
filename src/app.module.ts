@@ -7,6 +7,7 @@ import { OwnersModule } from './owners/owners.module';
 import { PetsModule } from './pets/pets.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { HealthModule } from './health/health.module';
+import { ChaosModule } from './chaos/chaos.module';
 
 @Module({
   imports: [
@@ -28,9 +29,10 @@ import { HealthModule } from './health/health.module';
     AppointmentsModule,
 
     HealthModule,
+
+    ChaosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {
-}
+export class AppModule {}
