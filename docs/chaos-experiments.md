@@ -214,13 +214,3 @@ La ejecución del 11 de junio de 2026 produjo estos resultados:
 
 Los controladores de owners, pets y appointments no fueron modificados. Los
 archivos completos se encuentran en `docs/evidence/local`.
-
-## IA empleada
-
-Se utilizó OpenAI Codex basado en GPT-5 para inspeccionar la arquitectura
-NestJS, proponer los experimentos, generar el código y preparar pruebas y
-documentación. Los resultados locales se validan mediante Jest, compilación
-TypeScript y ejecución real de los scripts. Los mismos scripts quedan
-parametrizados para la validación en staging. La IA no reemplaza la
-verificación: los tiempos, códigos HTTP y métricas de memoria guardados son la
-evidencia del experimento.
