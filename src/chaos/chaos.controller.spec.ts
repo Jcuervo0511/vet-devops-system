@@ -7,12 +7,10 @@ import { ChaosAccessService } from './chaos-access.service';
 import { ChaosController } from './chaos.controller';
 import { ChaosGuard } from './chaos.guard';
 import { ChaosService } from './chaos.service';
-import { LatencyChaosInterceptor } from './interceptors/latency-chaos.interceptor';
-import { Retry503Interceptor } from './interceptors/retry-503.interceptor';
-import { TransientErrorInterceptor } from './interceptors/transient-error.interceptor';
 
 describe('ChaosController', () => {
   let app: INestApplication<App>;
+  let chaosService: ChaosService;
   const values: Record<string, string> = {};
   const configService = {
     get: jest.fn((key: string) => values[key]),
@@ -33,14 +31,12 @@ describe('ChaosController', () => {
         ChaosService,
         ChaosAccessService,
         ChaosGuard,
-        LatencyChaosInterceptor,
-        Retry503Interceptor,
-        TransientErrorInterceptor,
         { provide: ConfigService, useValue: configService },
       ],
     }).compile();
 
     app = moduleRef.createNestApplication();
+    chaosService = moduleRef.get(ChaosService);
     await app.init();
   });
 
@@ -65,33 +61,41 @@ describe('ChaosController', () => {
       .expect(403);
   });
 
-  it('returns 503 without transient error protection', async () => {
-    values.CHAOS_PROTECTION_ENABLED = 'false';
-
-    await request(app.getHttpServer())
-      .get('/chaos/transient-error')
-      .set('x-chaos-key', 'test-key')
-      .expect(503);
-  });
-
-  it('recovers a transient 503 with one retry', async () => {
+  it('returns the global memory status', async () => {
     const response = await request(app.getHttpServer())
-      .get('/chaos/transient-error')
+      .get('/chaos/status')
       .set('x-chaos-key', 'test-key')
       .expect(200);
 
-    expect(response.text).toContain('"attempts":2');
-    expect(response.text).toContain('"recovered":true');
+    expect(response.text).toContain('"retainedBlocks":0');
+    expect(response.text).toContain('"retainedBytes":0');
   });
 
-  it('reports retained bytes for the memory scenario', async () => {
+  it('clears memory retained by the global interceptor', async () => {
     values.CHAOS_PROTECTION_ENABLED = 'false';
+    chaosService.allocateMemory();
+    chaosService.allocateMemory();
 
     const response = await request(app.getHttpServer())
-      .post('/chaos/memory')
+      .delete('/chaos/reset')
       .set('x-chaos-key', 'test-key')
-      .expect(201);
+      .expect(200);
 
-    expect(response.text).toContain('"retainedBytes":1048576');
+    expect(response.text).toContain('"releasedBlocks":2');
+    expect(response.text).toContain('"retainedBytes":0');
   });
+
+  it.each([
+    ['get', '/chaos/latency'],
+    ['get', '/chaos/transient-error'],
+    ['post', '/chaos/memory'],
+  ] as const)(
+    'does not expose the removed %s %s route',
+    async (method, path) => {
+      await request(app.getHttpServer())
+        [method](path)
+        .set('x-chaos-key', 'test-key')
+        .expect(404);
+    },
+  );
 });

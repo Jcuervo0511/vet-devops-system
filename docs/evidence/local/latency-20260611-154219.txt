@@ -1,6 +1,0 @@
-Scenario: latency
-Target: http://localhost:3000
-Started: 2026-06-11T15:42:19-05:00
-chaos_status=200 chaos_seconds=3.007762
-health_status=200 health_seconds=2.808469
-chaos_body={"status":"ok","scenario":"latency"}

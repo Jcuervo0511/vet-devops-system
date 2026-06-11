@@ -9,15 +9,46 @@ La inyección puede ejecutarse sobre cualquier endpoint existente. Durante la
 demostración se usan endpoints `GET`, por lo que no se modifican los datos de
 owners, pets o appointments.
 
-El interceptor también está registrado globalmente. Esto permite inyectar caos
-en cualquier endpoint existente sin modificar su controlador, servicio o
-módulo.
+Existe un único interceptor de inyección registrado globalmente. Los escenarios
+solo se ejecutan sobre endpoints existentes mediante `x-chaos-scenario`; no
+existen endpoints individuales para latencia, error transitorio o memoria.
+
+## Arquitectura actual
+
+El sistema de caos quedó organizado en tres partes:
+
+| Componente | Responsabilidad |
+|---|---|
+| `ChaosInjectionInterceptor` | Único interceptor que inyecta los tres escenarios globalmente |
+| `GET /chaos/status` | Consulta la memoria retenida por el escenario global `memory` |
+| `DELETE /chaos/reset` | Limpia la memoria retenida por el escenario global `memory` |
+
+Los escenarios se aplican sobre endpoints funcionales:
+
+| Escenario | Endpoint usado por defecto | Encabezado |
+|---|---|---|
+| Latencia | `GET /owners` | `x-chaos-scenario: latency` |
+| Error transitorio | `GET /pets` | `x-chaos-scenario: transient-error` |
+| Memoria | `GET /appointments` | `x-chaos-scenario: memory` |
+
+Los siguientes endpoints específicos fueron eliminados y deben responder
+`404 Not Found`:
+
+```text
+GET  /chaos/latency
+GET  /chaos/transient-error
+POST /chaos/memory
+```
+
+`/chaos/status` y `/chaos/reset` no generan fallas. Son herramientas auxiliares
+para medir y limpiar el estado del escenario global de memoria.
 
 ## Seguridad y configuración
 
-Las rutas solo existen cuando `CHAOS_ENABLED=true` y requieren el encabezado
-`x-chaos-key`. La configuración por defecto mantiene los experimentos
-deshabilitados.
+Cuando una petición incluye `x-chaos-scenario`, la inyección global exige
+`CHAOS_ENABLED=true` y una clave válida en `x-chaos-key`. Las herramientas
+auxiliares `/chaos/status` y `/chaos/reset` aplican las mismas validaciones.
+Las peticiones normales que no solicitan caos no necesitan la clave.
 
 ```env
 CHAOS_ENABLED=true
@@ -790,6 +821,25 @@ export CHAOS_KEY=change-this-key
 
 Estas variables son usadas por los ejemplos siguientes. Cambiar `BASE_URL`
 permite ejecutar exactamente las mismas pruebas en staging.
+
+### Scripts disponibles
+
+Los nombres de los scripts representan escenarios, no endpoints específicos:
+
+| Comando | Endpoint global predeterminado |
+|---|---|
+| `npm run chaos:latency` | `GET /owners` |
+| `npm run chaos:transient` | `GET /pets` |
+| `npm run chaos:memory` | `GET /appointments` |
+
+Los scripts envían `x-chaos-scenario` al endpoint funcional correspondiente.
+Ninguno llama a `/chaos/latency`, `/chaos/transient-error` o `/chaos/memory`.
+
+El endpoint objetivo puede reemplazarse sin modificar código:
+
+```bash
+CHAOS_TARGET_URL="$BASE_URL/api/v2/health" npm run chaos:latency
+```
 
 ## Escenario 1: latencia en cascada
 
@@ -1854,8 +1904,10 @@ Swagger sigue mostrando los endpoints de negocio, pero los encabezados del
 interceptor global no están declarados individualmente en cada operación. Para
 una demostración completa de los encabezados se recomienda `curl` o Postman.
 
-Los endpoints dedicados `/chaos/*` sí muestran `x-chaos-key` porque su
-controlador lo declara explícitamente.
+Las únicas rutas auxiliares son `GET /chaos/status` y
+`DELETE /chaos/reset`. Swagger muestra `x-chaos-key` en ambas porque su
+controlador lo declara explícitamente. Estas rutas no inyectan escenarios:
+solamente consultan o limpian la memoria usada por el interceptor global.
 
 ## Ejecución en AWS staging
 
