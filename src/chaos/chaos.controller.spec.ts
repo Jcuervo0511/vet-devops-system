@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { ChaosAccessService } from './chaos-access.service';
 import { ChaosController } from './chaos.controller';
 import { ChaosGuard } from './chaos.guard';
 import { ChaosService } from './chaos.service';
@@ -30,6 +31,7 @@ describe('ChaosController', () => {
       controllers: [ChaosController],
       providers: [
         ChaosService,
+        ChaosAccessService,
         ChaosGuard,
         LatencyChaosInterceptor,
         Retry503Interceptor,

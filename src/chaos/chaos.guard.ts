@@ -1,34 +1,14 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { isEnabled } from './chaos.constants';
+import { ChaosAccessService } from './chaos-access.service';
 
 @Injectable()
 export class ChaosGuard implements CanActivate {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly chaosAccessService: ChaosAccessService) {}
 
   canActivate(context: ExecutionContext): boolean {
-    if (!isEnabled(this.configService.get<string>('CHAOS_ENABLED'))) {
-      throw new NotFoundException();
-    }
-
-    const expectedKey = this.configService.get<string>('CHAOS_KEY');
-    if (!expectedKey) {
-      throw new ServiceUnavailableException('Chaos key is not configured');
-    }
-
     const request = context.switchToHttp().getRequest<Request>();
-    if (request.header('x-chaos-key') !== expectedKey) {
-      throw new ForbiddenException('Invalid chaos key');
-    }
-
+    this.chaosAccessService.assertAllowed(request);
     return true;
   }
 }

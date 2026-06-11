@@ -1,0 +1,6 @@
+Scenario: latency
+Target: http://localhost:3000/owners
+Started: 2026-06-11T15:55:59-05:00
+health_status=200 health_seconds=0.002812
+chaos_status=200 chaos_seconds=3.018761
+chaos_body=[]

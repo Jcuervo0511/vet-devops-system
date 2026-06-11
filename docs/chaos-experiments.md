@@ -7,6 +7,10 @@ latencia, errores HTTP transitorios y consumo creciente de memoria. Los
 experimentos usan rutas aisladas bajo `/chaos` y no modifican los datos de
 owners, pets o appointments.
 
+El interceptor también está registrado globalmente. Esto permite inyectar caos
+en cualquier endpoint existente sin modificar su controlador, servicio o
+módulo.
+
 ## Seguridad y configuración
 
 Las rutas solo existen cuando `CHAOS_ENABLED=true` y requieren el encabezado
@@ -23,6 +27,48 @@ CHAOS_MEMORY_MB=1
 
 `CHAOS_PROTECTION_ENABLED=false` reproduce el sistema vulnerable.
 `CHAOS_PROTECTION_ENABLED=true` activa las soluciones.
+
+## Inyección en cualquier endpoint
+
+No se necesitan decoradores como `@UseInterceptors()` ni importaciones en cada
+módulo. `ChaosModule` registra un `APP_INTERCEPTOR` global y permanece inactivo
+en las solicitudes normales.
+
+Para seleccionar un endpoint, se envían dos encabezados:
+
+```http
+x-chaos-key: change-this-key
+x-chaos-scenario: latency
+```
+
+Los escenarios permitidos son `latency`, `transient-error` y `memory`.
+
+Ejemplo sobre `GET /owners`:
+
+```bash
+curl \
+  -H "x-chaos-key: change-this-key" \
+  -H "x-chaos-scenario: latency" \
+  http://localhost:3000/owners
+```
+
+La misma ruta sin encabezados no recibe caos:
+
+```bash
+curl http://localhost:3000/owners
+```
+
+Para usar otra ruta solo se cambia la URL:
+
+```bash
+CHAOS_TARGET_URL=http://localhost:3000/owners npm run chaos:latency
+CHAOS_TARGET_URL=http://localhost:3000/pets npm run chaos:transient
+CHAOS_TARGET_URL=http://localhost:3000/appointments npm run chaos:memory
+```
+
+Las respuestas exitosas conservan el contenido original del endpoint. La
+evidencia adicional se entrega en los encabezados `x-chaos-scenario`,
+`x-chaos-attempts` y `x-chaos-retained-bytes`.
 
 ## Preparación local
 
@@ -53,7 +99,8 @@ retrasa incluso rutas no relacionadas.
 
 **Estado estable:** `GET /api/v2/health` debe responder en menos de 500 ms.
 
-**Falla:** el interceptor de latencia ejecuta una espera síncrona de 3 segundos.
+**Falla:** el interceptor global ejecuta una espera síncrona de 3 segundos
+sobre `GET /owners`.
 
 ```bash
 npm run chaos:latency
@@ -72,7 +119,8 @@ no tiene una política de recuperación.
 
 **Estado estable:** una operación de lectura debe finalizar con HTTP 200.
 
-**Falla:** el interceptor devuelve HTTP 503 durante el primer intento.
+**Falla:** el interceptor devuelve HTTP 503 durante el primer intento de
+`GET /pets`.
 
 ```bash
 npm run chaos:transient
@@ -92,7 +140,8 @@ crecer de forma permanente la memoria del proceso.
 
 **Estado estable:** `retainedBytes` debe permanecer en cero.
 
-**Falla:** cada `POST /chaos/memory` retiene un buffer de 1 MB.
+**Falla:** cada llamada seleccionada a `GET /appointments` retiene un buffer de
+1 MB.
 
 ```bash
 npm run chaos:memory
@@ -159,11 +208,12 @@ La ejecución del 11 de junio de 2026 produjo estos resultados:
 
 | Escenario | Vulnerable | Protegido |
 |---|---|---|
-| Latencia | Chaos 3.008 s; health 2.808 s | Chaos 3.006 s; health 0.006 s |
-| Error transitorio | HTTP 503 en 0.007 s | HTTP 200 en 0.106 s; 2 intentos |
+| Latencia sobre `/owners` | Endpoint 3.013 s; health 2.810 s | Endpoint 3.019 s; health 0.003 s |
+| Error sobre `/pets` | HTTP 503 en 0.004 s | HTTP 200 en 0.109 s; 2 intentos |
 | Memoria | 20 bloques; 20,971,520 bytes | 0 bloques; 0 bytes |
 
-Los archivos completos se encuentran en `docs/evidence/local`.
+Los controladores de owners, pets y appointments no fueron modificados. Los
+archivos completos se encuentran en `docs/evidence/local`.
 
 ## IA empleada
 

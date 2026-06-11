@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
+CHAOS_TARGET_URL="${CHAOS_TARGET_URL:-$BASE_URL/owners}"
 CHAOS_KEY="${CHAOS_KEY:-change-this-key}"
 EVIDENCE_DIR="${EVIDENCE_DIR:-docs/evidence/local}"
 mkdir -p "$EVIDENCE_DIR"
@@ -10,14 +11,15 @@ LATENCY_BODY="$(mktemp)"
 
 {
   echo "Scenario: latency"
-  echo "Target: $BASE_URL"
+  echo "Target: $CHAOS_TARGET_URL"
   echo "Started: $(date -Iseconds)"
 
   curl --silent --show-error \
     --header "x-chaos-key: $CHAOS_KEY" \
+    --header "x-chaos-scenario: latency" \
     --output "$LATENCY_BODY" \
     --write-out "chaos_status=%{http_code} chaos_seconds=%{time_total}\n" \
-    "$BASE_URL/chaos/latency" &
+    "$CHAOS_TARGET_URL" &
   latency_pid=$!
 
   sleep 0.2

@@ -165,7 +165,9 @@ Coverage reports are generated automatically in the /coverage directory.
 
 The project includes three controlled scenarios: event-loop latency, a
 transient HTTP 503 error, and retained memory. They are disabled by default and
-protected with the `x-chaos-key` header.
+protected with the `x-chaos-key` header. A global interceptor can inject them
+into any existing endpoint through `x-chaos-scenario`, without changing that
+endpoint's controller or service.
 
 See [docs/chaos-experiments.md](docs/chaos-experiments.md) for the local and
 AWS staging demonstration procedure.
