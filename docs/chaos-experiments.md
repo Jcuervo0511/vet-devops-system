@@ -84,34 +84,273 @@ mismo resultado.
 
 ### Encabezados de control
 
-La inyección se controla con estos encabezados:
+El interceptor reconoce exactamente dos encabezados personalizados de entrada:
 
-| Encabezado | Obligatorio | Ejemplo | Función |
-|---|---:|---|---|
-| `x-chaos-scenario` | Sí | `latency` | Selecciona el escenario que se ejecutará |
-| `x-chaos-key` | Sí | `change-this-key` | Autoriza la ejecución del escenario |
-| `Content-Type` | Solo si hay body | `application/json` | Conserva el formato normal del endpoint |
+| Encabezado | Cuándo es obligatorio | Valores admitidos | Función |
+|---|---|---|---|
+| `x-chaos-scenario` | Para solicitar cualquier escenario | `latency`, `transient-error`, `memory` | Activa el interceptor y selecciona la falla |
+| `x-chaos-key` | Cuando se envía un escenario válido | El valor exacto de `CHAOS_KEY` | Autoriza la ejecución del experimento |
 
-Valores admitidos para `x-chaos-scenario`:
+No existen otros encabezados de entrada propios del sistema de caos. La
+duración, memoria y modo vulnerable o protegido no se controlan desde la
+petición. Se controlan exclusivamente con variables de entorno.
 
-| Valor | Efecto |
-|---|---|
-| `latency` | Introduce la latencia configurada en `CHAOS_DELAY_MS` |
-| `transient-error` | Genera un error HTTP 503 en el primer intento |
-| `memory` | Asigna la cantidad configurada en `CHAOS_MEMORY_MB` |
+Por ejemplo, estos encabezados no están implementados y serán ignorados:
 
-Los valores son exactos. Por ejemplo, `Latency`, `error`, `503` o
-`memory-leak` no son válidos.
+```http
+x-chaos-delay: 5000
+x-chaos-memory: 10
+x-chaos-protection: true
+x-chaos-retries: 5
+```
+
+Esta restricción evita que un cliente cambie la intensidad o la solución del
+experimento desde una petición HTTP.
+
+#### Combinaciones completas de encabezados
+
+| Operación | `x-chaos-scenario` | `x-chaos-key` | Resultado |
+|---|---|---|---|
+| Petición normal | Ausente | Ausente | El interceptor no actúa |
+| Petición normal con clave innecesaria | Ausente | Cualquier valor | El interceptor no actúa |
+| Latencia | `latency` | Clave correcta | Inyecta el escenario de latencia |
+| Error transitorio | `transient-error` | Clave correcta | Inyecta el primer error HTTP 503 |
+| Memoria | `memory` | Clave correcta | Ejecuta la asignación de memoria |
+| Escenario válido sin clave | Cualquiera de los tres | Ausente | HTTP 403 |
+| Escenario válido con clave incorrecta | Cualquiera de los tres | Clave incorrecta | HTTP 403 |
+| Escenario inválido | Cualquier otro valor | Cualquier valor | HTTP 400 |
+| Escenario válido con caos deshabilitado | Cualquiera de los tres | Clave correcta | HTTP 404 |
+| Escenario válido sin `CHAOS_KEY` configurada en el servidor | Cualquiera de los tres | Cualquier valor | HTTP 503 |
+
+#### Encabezados exactos para latencia
+
+```http
+x-chaos-scenario: latency
+x-chaos-key: change-this-key
+```
+
+Petición completa:
+
+```bash
+curl --include \
+  --header "x-chaos-scenario: latency" \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  "$BASE_URL/owners"
+```
+
+La intensidad proviene de:
+
+```env
+CHAOS_DELAY_MS=3000
+CHAOS_PROTECTION_ENABLED=false
+```
+
+#### Encabezados exactos para error transitorio
+
+```http
+x-chaos-scenario: transient-error
+x-chaos-key: change-this-key
+```
+
+Petición completa:
+
+```bash
+curl --include \
+  --header "x-chaos-scenario: transient-error" \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  "$BASE_URL/pets"
+```
+
+La recuperación depende de:
+
+```env
+CHAOS_PROTECTION_ENABLED=false
+```
+
+Con `false`, el cliente recibe el primer 503. Con `true`, el interceptor realiza
+un reintento después de 100 ms.
+
+#### Encabezados exactos para memoria
+
+```http
+x-chaos-scenario: memory
+x-chaos-key: change-this-key
+```
+
+Petición completa:
+
+```bash
+curl --include \
+  --header "x-chaos-scenario: memory" \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  "$BASE_URL/appointments"
+```
+
+La cantidad y la retención dependen de:
+
+```env
+CHAOS_MEMORY_MB=1
+CHAOS_PROTECTION_ENABLED=false
+```
+
+#### Reglas de formato
+
+- Los nombres de encabezado HTTP no distinguen mayúsculas de minúsculas.
+  `X-Chaos-Scenario` y `x-chaos-scenario` son equivalentes.
+- Los valores de `x-chaos-scenario` sí deben coincidir exactamente.
+- Se recomienda usar minúsculas en nombres y valores para evitar confusión.
+- La clave debe coincidir exactamente con `CHAOS_KEY`.
+- No se deben agregar comillas al valor real del encabezado.
+- No se pueden solicitar varios escenarios en una sola petición.
+- Para cambiar de escenario se envía otra petición con otro valor.
+
+Valores válidos:
+
+```text
+latency
+transient-error
+memory
+```
+
+Valores inválidos:
+
+```text
+Latency
+LATENCY
+transient_error
+error
+503
+memory-leak
+latency,memory
+```
+
+#### Encabezados normales del endpoint
+
+El interceptor no reemplaza los encabezados que el endpoint ya necesite. Estos
+no son controles de caos, pero deben conservarse cuando correspondan:
+
+| Encabezado normal | Cuándo usarlo | Ejemplo |
+|---|---|---|
+| `Content-Type` | Peticiones con body JSON | `application/json` |
+| `Accept` | Para solicitar una respuesta JSON | `application/json` |
+| `Authorization` | Si el endpoint requiere autenticación | `Bearer TOKEN` |
+
+Ejemplo de un `POST` con encabezados normales y encabezados de caos:
+
+```bash
+curl --include \
+  --request POST \
+  --header "Content-Type: application/json" \
+  --header "Accept: application/json" \
+  --header "Authorization: Bearer TOKEN" \
+  --header "x-chaos-scenario: latency" \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  --data '{
+    "fullName": "Chaos Test",
+    "email": "chaos-test@example.com",
+    "phone_number": "3000000000"
+  }' \
+  "$BASE_URL/owners"
+```
+
+El encabezado `Authorization` se muestra como referencia general. La API actual
+no tiene autenticación Bearer configurada.
 
 ### Encabezados de evidencia
 
-Cuando el escenario se acepta, la respuesta incluye información adicional:
+El servidor puede devolver tres encabezados personalizados de evidencia:
 
-| Encabezado de respuesta | Escenario | Significado |
-|---|---|---|
-| `x-chaos-scenario` | Todos | Confirma cuál escenario fue inyectado |
-| `x-chaos-attempts` | `transient-error` | Indica cuántos intentos fueron realizados |
-| `x-chaos-retained-bytes` | `memory` | Indica cuántos bytes permanecen retenidos |
+| Encabezado de respuesta | Escenario | Siempre aparece | Ejemplo | Significado |
+|---|---|---:|---|---|
+| `x-chaos-scenario` | Todos los escenarios aceptados | Sí | `latency` | Confirma el escenario ejecutado |
+| `x-chaos-attempts` | `transient-error` | Solo en ese escenario | `1` o `2` | Número de intentos realizados |
+| `x-chaos-retained-bytes` | `memory` | Solo en ese escenario | `1048576` | Bytes retenidos después de la petición |
+
+#### Matriz completa de encabezados de respuesta
+
+| Escenario | Modo | `x-chaos-scenario` | `x-chaos-attempts` | `x-chaos-retained-bytes` |
+|---|---|---|---|---|
+| Sin escenario | Cualquiera | Ausente | Ausente | Ausente |
+| `latency` | Vulnerable | `latency` | Ausente | Ausente |
+| `latency` | Protegido | `latency` | Ausente | Ausente |
+| `transient-error` | Vulnerable | `transient-error` | `1` | Ausente |
+| `transient-error` | Protegido | `transient-error` | `2` | Ausente |
+| `memory` | Vulnerable, primera petición de 1 MB | `memory` | Ausente | `1048576` |
+| `memory` | Vulnerable, petición 20 de 1 MB | `memory` | Ausente | `20971520` |
+| `memory` | Protegido | `memory` | Ausente | `0` |
+
+`x-chaos-retained-bytes` informa el total acumulado, no únicamente la memoria
+asignada por la petición actual.
+
+#### Respuesta de latencia
+
+Ejemplo de encabezados relevantes:
+
+```http
+HTTP/1.1 200 OK
+x-chaos-scenario: latency
+content-type: application/json; charset=utf-8
+```
+
+No existe un encabezado `x-chaos-delay-ms`. El tiempo se mide con:
+
+```bash
+curl --output /dev/null \
+  --write-out "seconds=%{time_total}\n" \
+  --header "x-chaos-scenario: latency" \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  "$BASE_URL/owners"
+```
+
+#### Respuesta del error transitorio vulnerable
+
+```http
+HTTP/1.1 503 Service Unavailable
+x-chaos-scenario: transient-error
+x-chaos-attempts: 1
+content-type: application/json; charset=utf-8
+```
+
+#### Respuesta del error transitorio protegido
+
+```http
+HTTP/1.1 200 OK
+x-chaos-scenario: transient-error
+x-chaos-attempts: 2
+content-type: application/json; charset=utf-8
+```
+
+#### Respuesta de memoria vulnerable
+
+Primera petición con `CHAOS_MEMORY_MB=1`:
+
+```http
+HTTP/1.1 200 OK
+x-chaos-scenario: memory
+x-chaos-retained-bytes: 1048576
+content-type: application/json; charset=utf-8
+```
+
+#### Respuesta de memoria protegida
+
+```http
+HTTP/1.1 200 OK
+x-chaos-scenario: memory
+x-chaos-retained-bytes: 0
+content-type: application/json; charset=utf-8
+```
+
+#### Respuestas rechazadas
+
+Cuando la solicitud se rechaza antes de aceptar el experimento, no se deben
+usar los encabezados de evidencia como prueba de ejecución.
+
+| Situación | Código HTTP | Mensaje principal |
+|---|---:|---|
+| Escenario inválido | 400 | `x-chaos-scenario must be latency, transient-error or memory` |
+| Clave ausente o incorrecta | 403 | `Invalid chaos key` |
+| Experimentos deshabilitados | 404 | `Chaos experiments are disabled` |
+| Servidor sin `CHAOS_KEY` | 503 | `Chaos key is not configured` |
 
 Para ver estos encabezados se debe usar `curl -i` o `curl -D -`.
 
@@ -120,6 +359,30 @@ curl -i \
   -H "x-chaos-key: change-this-key" \
   -H "x-chaos-scenario: memory" \
   http://localhost:3000/appointments
+```
+
+Para mostrar solo los encabezados:
+
+```bash
+curl --silent --show-error \
+  --dump-header - \
+  --output /dev/null \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  --header "x-chaos-scenario: transient-error" \
+  "$BASE_URL/pets"
+```
+
+Para extraer únicamente los encabezados personalizados:
+
+```bash
+curl --silent --show-error \
+  --dump-header - \
+  --output /dev/null \
+  --header "x-chaos-key: $CHAOS_KEY" \
+  --header "x-chaos-scenario: memory" \
+  "$BASE_URL/appointments" |
+  tr -d '\r' |
+  grep -i '^x-chaos-'
 ```
 
 ### Variables de entorno
